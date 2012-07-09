@@ -77,6 +77,7 @@ class tx_jkpoll_pi1 extends tslib_pibase {
 		$this->LL_error_no_vote = $this->pi_getLL('error_no_vote');
 		$this->LL_wrong_captcha = $this->pi_getLL('wrong_captcha');
 		$this->LL_error_no_vote_selected = $this->pi_getLL('error_no_vote_selected');
+		$this->LL_limit_other = $this->pi_getLL('limit_other');
 
 		//Get ID of poll ($this->PollID) or error msg. if no poll was found
 		if (!$this->getPollID()) {
@@ -313,7 +314,10 @@ class tx_jkpoll_pi1 extends tslib_pibase {
 				
 				//build url for form
 				//get the current GET params, so the language (and maybe more) is preserved within the submit link
-				$getParams = t3lib_div::_GET();
+//				$getParams = t3lib_div::_GET();
+$getParams = array(
+	'L' => $GLOBALS['TSFE']->sys_language_content,
+);
 //parameter id für seiten_id aus array entfernen
 				// add get paramters to make it work with extension "comments" 
 				if ($this->pi_getFFvalue($this->cObj->data['pi_flexform'],'comments','s_poll') || $this->conf['comments']) {
@@ -440,10 +444,38 @@ class tx_jkpoll_pi1 extends tslib_pibase {
 			$colors = explode("\n", $row['colors']);
 			$answers_description = explode("\n", $row['answers_description']);
 			$answers_image = explode(",", $row['answers_image']);
+			
 			$total = 0;
 			foreach ($answers as $i => $a) {
 				$total += $votes[$i];
 			} 
+			
+			//Limit the amount of answers shown to the top x
+			if ($this->conf['result_limit']) {
+			    $limit = $this->conf['result_limit'];
+			} elseif ($this->pi_getFFvalue($this->cObj->data['pi_flexform'],'result_limit','s_result')) {
+			    $limit = $this->pi_getFFvalue($this->cObj->data['pi_flexform'],'result_limit','s_result');
+			}
+			if ($limit) {
+				$answers_count = count($answers);
+				$colors = array_pad($colors, $answers_count, "");
+				$answers_description = array_pad($answers_description, $answers_count, "");
+				$answers_image = array_pad($answers_image, $answers_count, "");
+				array_multisort($votes, SORT_DESC, $answers, $colors, $answers_description, $answers_image);
+				$rest = array_slice($votes, $limit);
+				$votes = array_slice($votes, 0, $limit);
+				$answers = array_slice($answers, 0, $limit);
+				$colors = array_slice($colors, 0, $limit);
+				if (!$this->conf['result_limit_hide_other']) {
+					$other = 0;
+					foreach ($rest as $i => $a) {
+						$other += $rest[$i];
+					}
+					$votes[] = $other;
+					$answers[] = $this->LL_limit_other;
+					//$colors[] = "blue";
+				}
+			}
 			
 			//Get type of poll
 			if ($this->conf['type']) {

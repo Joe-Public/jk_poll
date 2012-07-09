@@ -78,6 +78,7 @@
 			<label index="tt_content.pi_flexform.sheet_google">Google Chart</label>
 			<label index="tt_content.pi_flexform.google_width">Width (pixels)</label>
 			<label index="tt_content.pi_flexform.google_height">Height (pixels)</label>
+			<label index="tt_content.pi_flexform.result_limit">Limit number of answers shown to the top:</label>
 		</languageKey>		
 		<languageKey index="de" type="array">
 			<label index="pi1_title">Umfrage</label>
@@ -148,6 +149,7 @@
 			<label index="tt_content.pi_flexform.sheet_google">Google Chart</label>
 			<label index="tt_content.pi_flexform.google_width">Breite (Pixel)</label>
 			<label index="tt_content.pi_flexform.google_height">Höhe (Pixel)</label>
+			<label index="tt_content.pi_flexform.result_limit">Nur die höchsten x Antworten anzeigen:</label>
 		</languageKey>
 		<languageKey index="dk" type="array">
 			<label index="pi1_title">Afstemning</label>	

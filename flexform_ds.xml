@@ -321,6 +321,15 @@
 							</config>
 						</TCEforms>
 					</link_to_poll>
+					<result_limit>
+						<TCEforms>
+							<label>LLL:EXT:jk_poll/locallang_db.xml:tt_content.pi_flexform.result_limit</label>
+							<config>
+								<type>input</type>
+								<size>2</size>
+							</config>
+						</TCEforms>
+					</result_limit>
 				</el>
 			</ROOT>
 		</s_result>
