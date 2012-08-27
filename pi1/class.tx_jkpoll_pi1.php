@@ -1094,7 +1094,7 @@ $getParams = array(
 		//Find any poll records on the chosen page. 
 		//Polls that are not hidden or deleted and that are active according to start and end date
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-			'uid, title',
+			'uid, title, l18n_parent',
 			'tx_jkpoll_poll',
 			'pid='.$this->pid.' AND sys_language_uid='.$GLOBALS['TSFE']->sys_language_content . $this->pollEnableFields,
 			'',
@@ -1125,8 +1125,9 @@ $getParams = array(
 				$markerArray["###QUESTION_IMAGE###"] = $this->getimage($row['uid'],$this->conf['list_image_width'],$this->conf['list_image_height']);
  	        	if ($this->pi_getFFvalue($this->cObj->data['pi_flexform'],'show_results_in_list','s_list') || $this->conf['show_results_in_list'] ) {
 					$this->pollID = $row['uid'];
- 					$markerArray["###RESULT###"] = $this->showresults();
- 					$subpartArray["###POLL_RESULT###"] = $this->cObj->substituteMarkerArrayCached($template['result'],$markerArray, array(), array()); 					
+					$this->pollID_parent = $row['l18n_parent'];
+					$markerArray["###RESULT###"] = $this->showresults();
+					$subpartArray["###POLL_RESULT###"] = $this->cObj->substituteMarkerArrayCached($template['result'],$markerArray, array(), array());
  				} else {
  					$markerArray["###RESULT###"] = "";
  				}
