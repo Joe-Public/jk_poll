@@ -31,9 +31,10 @@
 require_once(PATH_tslib."class.tslib_pibase.php");
 
 class tx_jkpoll_pi1 extends tslib_pibase {
-	var $prefixId = "tx_jkpoll_pi1";		// Same as class name
-	var $scriptRelPath = "pi1/class.tx_jkpoll_pi1.php";	// Path to this script relative to the extension dir.
-	var $extKey = "jk_poll";	// The extension key.
+	public $prefixId      = 'tx_jkpoll_pi1';        // Same as class name
+	public $scriptRelPath = 'pi1/class.tx_jkpoll_pi1.php';    // Path to this script relative to the extension dir.
+	public $extKey        = 'jk_poll';    // The extension key.
+	public $pi_checkCHash = TRUE;
 	
 	function main($content,$conf)	{
 		$this->conf=$conf;
