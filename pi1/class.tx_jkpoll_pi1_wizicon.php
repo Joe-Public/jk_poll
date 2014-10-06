@@ -46,7 +46,8 @@ class tx_jkpoll_pi1_wizicon {
 	}
 	function includeLocalLang()    {
         $llFile = t3lib_extMgm::extPath('jk_poll').'locallang_db.xml';
-        if (t3lib_div::int_from_ver(TYPO3_version) < 4007000) {
+        //if (t3lib_div::int_from_ver(TYPO3_version) < 4007000) {
+	if (version_compare(TYPO3_branch,'4.7','<')) {
         	$LOCAL_LANG = t3lib_div::readLLXMLfile($llFile, $GLOBALS['LANG']->lang);
         } else {
         	$llxmlParser = t3lib_div::makeInstance('t3lib_l10n_parser_Llxml');
