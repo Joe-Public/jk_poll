@@ -83,7 +83,12 @@ class tx_jkpoll_pi1 extends tslib_pibase {
 		$this->LL_wrong_captcha = $this->pi_getLL('wrong_captcha');
 		$this->LL_error_no_vote_selected = $this->pi_getLL('error_no_vote_selected');
 		$this->LL_limit_other = $this->pi_getLL('limit_other');
+		$this->LL_errorlink = $this->pi_getLL('errorlink');
 
+		//The Get/Post variables
+ 		$postVars = t3lib_div::_GP($this->prefixId);
+ 		$getVars = t3lib_div::_GET($this->prefixId); 
+ 		if ($postVars['pollID']) { $this->pollID = intval($postVars['pollID']); }
 		//Get ID of poll ($this->PollID) or error msg. if no poll was found
 		if (!$this->getPollID()) {
 			$content = '<div class="error">'. $this->LL_no_poll_found. '</div>';
@@ -113,9 +118,6 @@ class tx_jkpoll_pi1 extends tslib_pibase {
         
     	//Poll should be displayed	
 		if (strchr($this->pi_getFFvalue($this->cObj->data['pi_flexform'],'what_to_display','sDEF'),"POLL") || $this->pi_getFFvalue($this->cObj->data['pi_flexform'],'what_to_display','sDEF')=='' )	{
-			//The Get/Post variables
-			$postVars = t3lib_div::_GP($this->prefixId);
-			$getVars = t3lib_div::_GET($this->prefixId); 
 			if ($postVars['go']) {
 				$this->go = $postVars['go'];
 			} else { 
@@ -412,7 +414,7 @@ $getParams = array(
 			
 	        return $content;
 		} else {
-			return '<div class="error">' .$this->LL_poll_not_visible. '</div>';
+			return $this->showError($this->LL_poll_not_visible);
 		}
 	}
 
@@ -641,8 +643,9 @@ $getParams = array(
 			$subpartArray["###ANSWER_RESULT###"] = $resultcontentAnswer;
 			$subpartArray["###EXPLANATION###"] = $this->cObj->stdWrap($row['explanation'],$this->conf['rtefield_stdWrap.']);
 			
-			//include link to RESULT view
-			if (($this->pi_getFFvalue($this->cObj->data['pi_flexform'],'link_to_poll','s_result') || $this->conf['link_to_poll']) && $this->voteable) {
+			//include link to POLL view
+ 			$cookieName = 't3_tx_jkpoll_'.$this->pollID;
+ 			if (($this->pi_getFFvalue($this->cObj->data['pi_flexform'],'link_to_poll','s_result') || $this->conf['link_to_poll']) && $this->voteable && !isset($_COOKIE[$cookieName]) && !$this->cookieset) {
 				//build url for linklist
 				$ll_getParams = array($this->prefixId.'[go]' => 'poll', $this->prefixId.'[uid]' => $this->pollID);
 				$ll_alink = $this->pi_getPageLink($GLOBALS['TSFE']->id,'',$ll_getParams);
@@ -664,7 +667,7 @@ $getParams = array(
 			$content .= $this->cObj->substituteMarkerArrayCached($template["answers"], array(), $subpartArray, array());
 	    	return $content;
 		} else {
-	    	return '<div class="error">' .$this->LL_poll_not_visible. '</div>';
+	    	return $this->showError($this->LL_poll_not_visible);
 		}
 	}
 
@@ -684,7 +687,7 @@ $getParams = array(
 		$cookieName = 't3_tx_jkpoll_'.$check_poll_id;
 		//Exit if cookie exists		
 		if (isset($_COOKIE[$cookieName])) {
-			return '<div class="error">'. $this->LL_has_voted. '</div>';
+			return $this->showError($this->LL_has_voted);
 		}
 			
 		//Exit if captcha was not right
@@ -698,10 +701,10 @@ $getParams = array(
 					$captchaStr = -1;
 				}
 				if (!($captchaStr===-1 || ($captchaStr && $this->captcha===$captchaStr))) {
-					return '<div class="error">' .$this->LL_wrong_captcha. '</div>';
+					return $this->showError($this->LL_wrong_captcha);
 				}
 			} elseif (($this->pi_getFFvalue($this->cObj->data['pi_flexform'],'captcha','s_poll') == "sr_freecap" || $this->conf['captcha'] == "sr_freecap") && is_object($this->freeCap) && !$this->freeCap->checkWord($this->sr_captcha)) {
-				return '<div class="error">' .$this->LL_wrong_captcha. '</div>';
+				return $this->showError($this->LL_wrong_captcha);
 			}
 		}
 		
@@ -720,11 +723,11 @@ $getParams = array(
 					}
 				}
 				if (count($rows)) {
-					return '<div class="error">' .$this->LL_has_voted. '</div>';
+					return $this->showError($this->LL_has_voted);
 				}
 			}
 			else {
-				return '<div class="error">' .$this->LL_no_login. '</div>';
+				return $this->showError($this->LL_no_login);
 			}
 		}
 
@@ -751,13 +754,13 @@ $getParams = array(
 				}
 			}
 			if (count($rows)) {
-				return '<div class="error">' .$this->LL_has_voted. '</div>';
+				return $this->showError($this->LL_has_voted);
 			}
 		}
 
 		//check if an answer was selected
 		if(!intval($this->answer[0]) && $this->answer[0]!='0') {
-			return '<div class="error">'. $this->LL_error_no_vote_selected. '</div>';
+			return $this->showError($this->LL_error_no_vote_selected);
 		}
 
 		//decide if cookie-path is to be set or not
@@ -770,8 +773,9 @@ $getParams = array(
 			//make non-persistent cookie if "off"
 			if ($this->pi_getFFvalue($this->cObj->data['pi_flexform'],'cookie','s_poll') == "off" || $this->conf['cookie'] == "off") {
 				if(!setcookie($cookieName,'voted:yes',0,$cookiepath)) {
-					return '<div class="error">'. $this->LL_error_no_vote. '</div>';
+					return $this->showError($this->LL_error_no_vote);
 				}
+				$this->cookieset = 1;
 			}
 			//don't use cookies if "no"
 			elseif ($this->pi_getFFvalue($this->cObj->data['pi_flexform'],'cookie','s_poll') == "no" || $this->conf['cookie'] == "no") {
@@ -780,8 +784,9 @@ $getParams = array(
 			//if no value set use 30 days
 			elseif ($this->pi_getFFvalue($this->cObj->data['pi_flexform'],'cookie','s_poll')==='' || $this->conf['cookie']==='') {
 				if(!setcookie($cookieName,'voted:yes',$GLOBALS['SIM_EXEC_TIME'] + (3600*24*30),$cookiepath)) {
-					return '<div class="error">'. $this->LL_error_no_vote. '</div>';
+					return $this->showError($this->LL_error_no_vote);
 				}
+				$this->cookieset = 1;
 			}
 		} else {
 			//delete cookie after time set via flexform
@@ -791,8 +796,9 @@ $getParams = array(
 			    $cookieTime = $GLOBALS['SIM_EXEC_TIME'] + (3600*24*intval($this->conf['cookie']));
 			}
 			if(!setcookie($cookieName,'voted:yes',$cookieTime,$cookiepath)) {
-				return '<div class="error">'. $this->LL_error_no_vote. '</div>';
+				return $this->showError($this->LL_error_no_vote);
 			}
+			$this->cookieset = 1;
 		}
 		
 		//Get the poll data so it can be updated
@@ -915,21 +921,19 @@ $getParams = array(
 		}
 		
 		//Get the poll id from parameter or select newest active poll (only newest poll is voteable)	
-		if ($this->piVars['uid'] != "") {			
+		if ($this->piVars['uid'] != "" || $this->pollID != "") {			
+			if ($this->piVars['uid'] != "") { $this->pollID = intval($this->piVars['uid']); }
 			if (!$this->pi_getFFvalue($this->cObj->data['pi_flexform'],'vote_old','s_list')) {
-				if ($this->piVars['uid'] == $this->getLastPoll()) { 
+				if ($this->pollID == $this->getLastPoll()) { 
 					$this->voteable = true;
 				} else { 
 					$this->voteable = false;
 				}
-				$this->pollID = intval($this->piVars['uid']);
-				//check if poll is translated
-				$this->pollID_parent = $this->getPollIDParent($this->pollID);
 			} else {
-				$this->pollID = intval($this->piVars['uid']);
 				$this->voteable = true;
-				$this->pollID_parent = $this->getPollIDParent($this->pollID);		 
-			}			
+			}
+			//check if poll is translated
+			$this->pollID_parent = $this->getPollIDParent($this->pollID);
 		} else {
 			//Get the last poll from storage page
 			$this->pollID = $this->getLastPoll();
@@ -1162,7 +1166,8 @@ $getParams = array(
 			// How much pages do we need
 			$numberOfPages = count($items);
 			$subpartArray = array();
-			foreach ($items[intval($this->piVars['page'])] as $i) {
+//			foreach ($items[intval($this->piVars['page'])] as $i) {
+			foreach ($items[intval(t3lib_div::_GET('tx_pagebrowse_pi1')['page'])] as $i) {
 				$subpartArray["###POLL_LINK###"] .= $i; 
 			}
 		} else {	
@@ -1172,7 +1177,7 @@ $getParams = array(
 		
 		//include link back to previews view
 		if ($this->pi_getFFvalue($this->cObj->data['pi_flexform'],'backlink','s_list') || $this->conf['backlink']) {
-			$subpartArray["###LINKVIEW###"] = '<a class="jk_poll_linklist" href="'.$_SERVER['HTTP_REFERER'].'">'.$this->LL_linkview.'</a>';
+			$subpartArray["###LINKVIEW###"] = '<a class="jk_poll_linklist" href="'.$_SERVER['HTTP_REFERER'].'">'.$this->LL_errorlink.'</a>';
 		} else {
 			$subpartArray["###LINKVIEW###"] = '';
 		}
@@ -1260,8 +1265,22 @@ $getParams = array(
 		return $this->cObj->IMAGE($imgTSConfig);
 	}
 	
-	
-	
+
+	/**
+	 * Returns the HTML for the error message
+	 * 
+	 * @param	string		$error : error message	 
+	 * @return	string		HTML for the error message
+	 */
+	function showError($error) {
+		$error_message = '<div class="error">'. $this->LL_error_no_vote_selected. '</div>';
+		if ($this->conf['errorlink']) {
+			#$error_message .= '<div class="poll_link"><a href="'. $this->pi_getPageLink($GLOBALS['TSFE']->id,'',$getParams) .'">back to poll</a></div>';
+			$error_message .= '<div class="error_poll_link"><a href="'.$_SERVER['HTTP_REFERER'].'">'.$this->LL_errorlink.'</a></div>';
+		}
+		return $error_message;
+	}
+
 	
 	/**
 	 * Returns the HTML for the image

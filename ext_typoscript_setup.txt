@@ -69,6 +69,8 @@ plugin.tx_jkpoll_pi1 {
 	submitbutton_params =
 	# how SUBMIT_JS marker shall behave, if no JavaScript is allowed. Options are "dontShow" or "dontLink" (default)
 	submit_js_fallback = dontLink
+	# add link back to poll to error messages
+	errorlink = 1
 
 /*
  * settings for output (result)
