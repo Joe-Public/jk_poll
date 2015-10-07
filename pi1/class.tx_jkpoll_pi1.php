@@ -1174,8 +1174,8 @@ $getParams = array(
 			// How much pages do we need
 			$numberOfPages = count($items);
 			$subpartArray = array();
-//			foreach ($items[intval($this->piVars['page'])] as $i) {
-			foreach ($items[intval(t3lib_div::_GET('tx_pagebrowse_pi1')['page'])] as $i) {
+			$page = intval($this->piVars['page']);
+			foreach ($items[$page] as $i) {
 				$subpartArray["###POLL_LINK###"] .= $i;
 			}
 		} else {
@@ -1194,7 +1194,7 @@ $getParams = array(
 
 		// Add page browser
 		if ($pagebrowser) {
-		$content .= $this->getListGetPageBrowser($numberOfPages);
+			$content .= $this->getListGetPageBrowser($numberOfPages);
 		}
 
         return $content;
@@ -1348,12 +1348,17 @@ $getParams = array(
 		// Get default configuration
 		$conf = $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_pagebrowse_pi1.'];
 		// Modify this configuration
-		$conf += array(
-			'pageParameterName' => $this->prefixId . '|page',
-			'numberOfPages' => $numberOfPages,
+		$conf = array_merge($conf, array(
+				'pageParameterName' => $this->prefixId . '|page',
+				'numberOfPages' => $numberOfPages,
+			)
 		);
 		// Get page browser
-		$cObj = t3lib_div::makeInstance('tslib_cObj');
+		if (version_compare(TYPO3_branch,'6.0','<')) {
+			$cObj = t3lib_div::makeInstance('tslib_cObj');
+		} else {
+			$cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('tslib_cObj');
+		}
 		/* @var $cObj tslib_cObj */
 		$cObj->start(array(), '');
 		return $cObj->cObjGetSingle('USER', $conf);
