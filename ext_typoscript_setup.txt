@@ -94,7 +94,7 @@ plugin.tx_jkpoll_pi1 {
 	show_css_bars = 0
 	# definition of colors if rendering via CSS is enabled
 	cssColors {
- 		braun = brown
+		braun = brown
 		rot = red
 		gelb = yellow
 		blau = blue
