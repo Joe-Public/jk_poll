@@ -1354,11 +1354,7 @@ $getParams = array(
 			)
 		);
 		// Get page browser
-		if (version_compare(TYPO3_branch,'6.0','<')) {
-			$cObj = t3lib_div::makeInstance('tslib_cObj');
-		} else {
-			$cObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('tslib_cObj');
-		}
+		$cObj = t3lib_div::makeInstance('tslib_cObj');
 		/* @var $cObj tslib_cObj */
 		$cObj->start(array(), '');
 		return $cObj->cObjGetSingle('USER', $conf);
